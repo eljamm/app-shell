@@ -6,7 +6,7 @@
 # nix build --file ./app-shell.nix --argstr apps "APP,APP,..." && ./result
 
 {
-  nixpkgs ? "https://github.com/NixOS/nixpkgs/archive/nixos-unstable.tar.gz",
+  pkgs ? import (fetchTarball "https://github.com/NixOS/nixpkgs/archive/nixos-unstable.tar.gz") { },
   apps ? null,
   pythonPackages ? null,
   libs ? null,
@@ -15,8 +15,6 @@
 }:
 
 let
-  pkgs = import (fetchTarball nixpkgs) { };
-
   inherit (pkgs)
     writeShellScript
     ;
