@@ -5,12 +5,13 @@
 # or
 # nix build --file ./app-shell.nix --argstr apps "APP,APP,..." && ./result
 
-{ nixpkgs ? "https://github.com/NixOS/nixpkgs/archive/nixos-unstable.tar.gz"
-, apps ? null
-, pythonPackages ? null
-, libs ? null
-, includeLibs ? null
-, command ? null
+{
+  nixpkgs ? "https://github.com/NixOS/nixpkgs/archive/nixos-unstable.tar.gz",
+  apps ? null,
+  pythonPackages ? null,
+  libs ? null,
+  includeLibs ? null,
+  command ? null,
 }:
 
 let
@@ -30,58 +31,44 @@ let
     ;
 
   inherit (pkgs.python3Packages)
-    makePythonPath  # FIXME: doesn't work for other Python versions
+    makePythonPath # FIXME: doesn't work for other Python versions
     ;
 
-  stringToPackage = str:
-    getAttrFromPath (splitString "." str) pkgs;
+  stringToPackage = str: getAttrFromPath (splitString "." str) pkgs;
 
-  makePkgConfigPath = packages:
-    makeSearchPathOutput "dev" "lib/pkgconfig" packages;
+  makePkgConfigPath = packages: makeSearchPathOutput "dev" "lib/pkgconfig" packages;
 
-  appsList =
-    if apps != null then
-      map (x: stringToPackage x) (splitString "," apps)
-    else [ ];
-  appsPath =
-    if apps != null then
-      "export PATH=${makeBinPath appsList}:$PATH"
-    else
-      "";
+  appsList = if apps != null then map (x: stringToPackage x) (splitString "," apps) else [ ];
+  appsPath = if apps != null then "export PATH=${makeBinPath appsList}:$PATH" else "";
 
   pythonPackagesList =
-    if pythonPackages != null then
-      map (x: stringToPackage x ) (splitString "," pythonPackages)
-    else [ ];
+    if pythonPackages != null then map (x: stringToPackage x) (splitString "," pythonPackages) else [ ];
   pythonPath =
     if pythonPackages != null then
       "export PYTHONPATH=${makePythonPath pythonPackagesList}:$PYTHONPATH"
     else
       "";
 
-  libsList =
-    if libs != null then
-      map (x: stringToPackage x) (splitString "," libs)
-    else [ ];
+  libsList = if libs != null then map (x: stringToPackage x) (splitString "," libs) else [ ];
   libraryPath =
-    if libs != null then ''
-      export LIBRARY_PATH=${makeLibraryPath libsList}:$LIBRARY_PATH
-      export LD_LIBRARY_PATH=${makeLibraryPath libsList}:$LD_LIBRARY_PATH
-      export CMAKE_LIBRARY_PATH=${makeLibraryPath libsList}:$CMAKE_LIBRARY_PATH
-      export PKG_CONFIG_PATH=${makePkgConfigPath libsList}:$PKG_CONFIG_PATH
-    ''
+    if libs != null then
+      ''
+        export LIBRARY_PATH=${makeLibraryPath libsList}:$LIBRARY_PATH
+        export LD_LIBRARY_PATH=${makeLibraryPath libsList}:$LD_LIBRARY_PATH
+        export CMAKE_LIBRARY_PATH=${makeLibraryPath libsList}:$CMAKE_LIBRARY_PATH
+        export PKG_CONFIG_PATH=${makePkgConfigPath libsList}:$PKG_CONFIG_PATH
+      ''
     else
       "";
 
   includeLibsList =
-    if includeLibs != null then
-      map (x: stringToPackage x) (splitString "," includeLibs)
-    else [ ];
+    if includeLibs != null then map (x: stringToPackage x) (splitString "," includeLibs) else [ ];
   includePath =
-    if includeLibs != null then ''
-      export C_INCLUDE_PATH=${makeIncludePath includeLibsList}:$C_INCLUDE_PATH
-      export CMAKE_INCLUDE_PATH=${makeIncludePath includeLibsList}:$CMAKE_INCLUDE_PATH
-    ''
+    if includeLibs != null then
+      ''
+        export C_INCLUDE_PATH=${makeIncludePath includeLibsList}:$C_INCLUDE_PATH
+        export CMAKE_INCLUDE_PATH=${makeIncludePath includeLibsList}:$CMAKE_INCLUDE_PATH
+      ''
     else
       "";
 

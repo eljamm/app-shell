@@ -5,26 +5,42 @@
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
   };
 
-  outputs = { self, nixpkgs }:
+  outputs =
+    { self, nixpkgs }:
 
     let
       # Flake system
-      supportedSystems = [ "x86_64-linux" "aarch64-linux" "x86_64-darwin" "aarch64-darwin" ];
+      supportedSystems = [
+        "x86_64-linux"
+        "aarch64-linux"
+        "x86_64-darwin"
+        "aarch64-darwin"
+      ];
       forAllSystems = nixpkgs.lib.genAttrs supportedSystems;
-      nixpkgsFor = forAllSystems (system: import nixpkgs {
-        inherit system;
-      });
+      nixpkgsFor = forAllSystems (
+        system:
+        import nixpkgs {
+          inherit system;
+        }
+      );
 
     in
     {
-      packages = forAllSystems (system:
+      packages = forAllSystems (
+        system:
         let
           pkgs = nixpkgsFor.${system};
 
         in
         rec {
           app-shell = pkgs.callPackage (
-            { stdenv, lib, bash, shellcheck, makeWrapper}:
+            {
+              stdenv,
+              lib,
+              bash,
+              shellcheck,
+              makeWrapper,
+            }:
             stdenv.mkDerivation {
               pname = "app-shell";
               version = "0.1.0";
@@ -55,6 +71,7 @@
             }
           ) { };
           default = app-shell;
-        });
+        }
+      );
     };
 }
