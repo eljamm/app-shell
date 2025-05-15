@@ -36,7 +36,14 @@ let
 
   makePkgConfigPath = packages: makeSearchPathOutput "dev" "lib/pkgconfig" packages;
 
-  appsList = if apps != null then map (x: stringToPackage x) (splitString "," apps) else [ ];
+  appsList =
+    with pkgs.lib;
+    if isString apps then
+      map (x: stringToPackage x) (splitString "," apps)
+    else if isList apps then
+      apps
+    else
+      [ ];
   appsPath = if apps != null then "export PATH=${makeBinPath appsList}:$PATH" else "";
 
   pythonPackagesList =
