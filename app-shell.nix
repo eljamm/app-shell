@@ -36,25 +36,27 @@ let
 
   makePkgConfigPath = packages: makeSearchPathOutput "dev" "lib/pkgconfig" packages;
 
-  appsList =
+  getDrvList =
+    element:
     with pkgs.lib;
-    if isString apps then
-      map (x: stringToPackage x) (splitString "," apps)
-    else if isList apps then
-      apps
+    if isString element then
+      map (x: stringToPackage x) (splitString "," element)
+    else if isList element then
+      element
     else
       [ ];
+
+  appsList = getDrvList apps;
   appsPath = if apps != null then "export PATH=${makeBinPath appsList}:$PATH" else "";
 
-  pythonPackagesList =
-    if pythonPackages != null then map (x: stringToPackage x) (splitString "," pythonPackages) else [ ];
+  pythonPackagesList = getDrvList pythonPackages;
   pythonPath =
     if pythonPackages != null then
       "export PYTHONPATH=${makePythonPath pythonPackagesList}:$PYTHONPATH"
     else
       "";
 
-  libsList = if libs != null then map (x: stringToPackage x) (splitString "," libs) else [ ];
+  libsList = getDrvList libs;
   libraryPath =
     if libs != null then
       ''
@@ -66,8 +68,7 @@ let
     else
       "";
 
-  includeLibsList =
-    if includeLibs != null then map (x: stringToPackage x) (splitString "," includeLibs) else [ ];
+  includeLibsList = getDrvList includeLibs;
   includePath =
     if includeLibs != null then
       ''
